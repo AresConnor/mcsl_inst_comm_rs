@@ -68,7 +68,7 @@ impl PacketHeader {
 
 pub const PACKET_BARRIER: [u8; 4] = [0xDE, 0xAD, 0xBE, 0xEF];
 pub const PACKET_HEADER_SIZE: usize = std::mem::size_of::<PacketHeader>();
-pub const CHUNK_SIZE: usize = 4;
+pub const SYNC_CHUNK_SIZE: usize = 4;
 const MAGIC: u16 = 0xA7B8;
 
 #[derive(Encode, Decode, Debug)]
@@ -96,16 +96,17 @@ impl DecodeFromBytes for Packet {
 impl Packet {
     pub fn to_message(&self, uuid: u128) -> Vec<u8> {
         let packet_data = bitcode::encode(self);
-        let count = if packet_data.len() % CHUNK_SIZE == 0 {
-            packet_data.len() / CHUNK_SIZE
+        let count = if packet_data.len() % SYNC_CHUNK_SIZE == 0 {
+            packet_data.len() / SYNC_CHUNK_SIZE
         } else {
-            packet_data.len() / CHUNK_SIZE + 1
+            packet_data.len() / SYNC_CHUNK_SIZE + 1
         };
 
         let header = PacketHeader::new(packet_data.len() as u16, uuid);
         let header_data = bitcode::encode(&header);
 
-        let mut data = Vec::with_capacity(CHUNK_SIZE + count * CHUNK_SIZE + PACKET_HEADER_SIZE);
+        let mut data =
+            Vec::with_capacity(SYNC_CHUNK_SIZE + count * SYNC_CHUNK_SIZE + PACKET_HEADER_SIZE);
         data.extend_from_slice(&PACKET_BARRIER);
         data.extend_from_slice(&header_data);
         data.extend_from_slice(&packet_data);
