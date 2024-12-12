@@ -44,9 +44,31 @@ impl DecodeFromBytes for PacketHeader {
     }
 }
 
-const PACKET_BARRIER: [u8; 4] = [0xDE, 0xAD, 0xBE, 0xEF];
-const PACKET_HEADER_SIZE: usize = std::mem::size_of::<PacketHeader>();
-const MAGIC: u16 = 0xDEAD;
+impl PacketHeader {
+    pub fn from_bytes_and_checked(bytes: &[u8], uuid: u128) -> DecodeResult<Self> {
+        if bytes.len() < PACKET_HEADER_SIZE {
+            return Err(format!(
+                "PacketHeader: bytes length {} is less than header size {}",
+                bytes.len(),
+                PACKET_HEADER_SIZE
+            ));
+        }
+
+        let unchecked_header = Self::from_bytes(bytes)?;
+        let unckecked_uuid = (unchecked_header.uuid1 as u128) << 96
+            | (unchecked_header.uuid2 as u128) << 64
+            | (unchecked_header.uuid3 as u128) << 32
+            | (unchecked_header.uuid4 as u128);
+        if unchecked_header.magic != MAGIC || unckecked_uuid != uuid {
+            return Err("PacketHeader: invalid header".to_string());
+        }
+        Ok(unchecked_header)
+    }
+}
+
+pub const PACKET_BARRIER: [u8; 4] = [0xDE, 0xAD, 0xBE, 0xEF];
+pub const PACKET_HEADER_SIZE: usize = std::mem::size_of::<PacketHeader>();
+const MAGIC: u16 = 0xA7B8;
 const CHUNK_SIZE: usize = 4;
 
 #[derive(Encode, Decode, Debug)]
