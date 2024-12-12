@@ -68,8 +68,8 @@ impl PacketHeader {
 
 pub const PACKET_BARRIER: [u8; 4] = [0xDE, 0xAD, 0xBE, 0xEF];
 pub const PACKET_HEADER_SIZE: usize = std::mem::size_of::<PacketHeader>();
+pub const CHUNK_SIZE: usize = 4;
 const MAGIC: u16 = 0xA7B8;
-const CHUNK_SIZE: usize = 4;
 
 #[derive(Encode, Decode, Debug)]
 pub enum Packet {
