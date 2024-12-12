@@ -48,6 +48,12 @@ impl Encoding {
     }
 }
 
+impl Encoding {
+    pub fn from_str(s: &str) -> Option<Encoding> {
+        STR2ENCODING_MAP.get(s).cloned()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
