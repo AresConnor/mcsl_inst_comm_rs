@@ -96,16 +96,16 @@ impl DecodeFromBytes for Packet {
 impl Packet {
     pub fn to_message(&self, uuid: u128) -> Vec<u8> {
         let packet_data = bitcode::encode(self);
-        let length = if packet_data.len() % CHUNK_SIZE == 0 {
+        let count = if packet_data.len() % CHUNK_SIZE == 0 {
             packet_data.len() / CHUNK_SIZE
         } else {
             packet_data.len() / CHUNK_SIZE + 1
         };
 
-        let header = PacketHeader::new(length as u16, uuid);
+        let header = PacketHeader::new(packet_data.len() as u16, uuid);
         let header_data = bitcode::encode(&header);
 
-        let mut data = Vec::with_capacity(CHUNK_SIZE + length * CHUNK_SIZE + PACKET_HEADER_SIZE);
+        let mut data = Vec::with_capacity(CHUNK_SIZE + count * CHUNK_SIZE + PACKET_HEADER_SIZE);
         data.extend_from_slice(&PACKET_BARRIER);
         data.extend_from_slice(&header_data);
         data.extend_from_slice(&packet_data);
