@@ -1,9 +1,8 @@
 use bitcode::{Decode, Encode};
-use std::collections::HashMap;
-use std::sync::LazyLock;
+use std::str::FromStr;
 
 #[allow(clippy::upper_case_acronyms)]
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Default, Encode, Decode)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Encode, Decode)]
 pub enum Encoding {
     ASCII,
     #[default]
@@ -29,34 +28,48 @@ fn map_encoding(encoding: &Encoding) -> encoding::EncodingRef {
     }
 }
 
-static STR2ENCODING_MAP: LazyLock<HashMap<&'static str, Encoding>> = LazyLock::new(|| {
-    let mut map = HashMap::new();
-    map.insert("ascii", Encoding::ASCII);
-    map.insert("utf-8", Encoding::UTF8);
-    map.insert("utf-16le", Encoding::UTF16LE);
-    map.insert("utf-16be", Encoding::UTF16BE);
-    map.insert("gbk", Encoding::GBK);
-    map.insert("gb18030", Encoding::GB18030);
-    map.insert("hz", Encoding::HZ);
-    map.insert("big5-2003", Encoding::BIG5_2003);
-    map
-});
-
 impl Encoding {
     pub fn get(&self) -> encoding::EncodingRef {
         map_encoding(self)
     }
 }
 
-impl Encoding {
-    pub fn from_str(s: &str) -> Option<Encoding> {
-        STR2ENCODING_MAP.get(s).cloned()
+impl FromStr for Encoding {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "ascii" => Ok(Encoding::ASCII),
+            "utf-8" => Ok(Encoding::UTF8),
+            "utf-16le" => Ok(Encoding::UTF16LE),
+            "utf-16be" => Ok(Encoding::UTF16BE),
+            "gbk" => Ok(Encoding::GBK),
+            "gb18030" => Ok(Encoding::GB18030),
+            "hz" => Ok(Encoding::HZ),
+            "big5-2003" => Ok(Encoding::BIG5_2003),
+            _ => Err(format!("Unknown encoding: {}", s)),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
+    use std::sync::LazyLock;
+
+    static STR2ENCODING_MAP: LazyLock<HashMap<&'static str, Encoding>> = LazyLock::new(|| {
+        let mut map = HashMap::new();
+        map.insert("ascii", Encoding::ASCII);
+        map.insert("utf-8", Encoding::UTF8);
+        map.insert("utf-16le", Encoding::UTF16LE);
+        map.insert("utf-16be", Encoding::UTF16BE);
+        map.insert("gbk", Encoding::GBK);
+        map.insert("gb18030", Encoding::GB18030);
+        map.insert("hz", Encoding::HZ);
+        map.insert("big5-2003", Encoding::BIG5_2003);
+        map
+    });
 
     fn get_encodings() -> Vec<Encoding> {
         Vec::from_iter(STR2ENCODING_MAP.values().cloned())
