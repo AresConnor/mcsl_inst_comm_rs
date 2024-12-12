@@ -8,6 +8,20 @@ pub struct PacketHeader {
     pub uuid: u128,
 }
 
+type DecodeResult<T> = Result<T, String>;
+pub trait DecodeFromBytes {
+    type Target;
+    fn from_bytes(bytes: &[u8]) -> DecodeResult<Self::Target>;
+}
+
+impl DecodeFromBytes for PacketHeader {
+    type Target = Self;
+    fn from_bytes(bytes: &[u8]) -> DecodeResult<Self::Target> {
+        let header = bitcode::decode::<PacketHeader>(bytes);
+        header.map_err(|err| format!("{}", err))
+    }
+}
+
 #[derive(Encode, Decode, Debug)]
 pub enum Packet {
     SetUuid(SetUuidPayload),
@@ -20,6 +34,14 @@ pub enum Packet {
     AboutExit(AboutExitPayload),
     Err(ErrPayload),
     Ok(OkPayload),
+}
+
+impl DecodeFromBytes for Packet {
+    type Target = Self;
+    fn from_bytes(bytes: &[u8]) -> DecodeResult<Self::Target> {
+        let header = bitcode::decode::<Self>(bytes);
+        header.map_err(|err| format!("{}", err))
+    }
 }
 
 impl Packet {
