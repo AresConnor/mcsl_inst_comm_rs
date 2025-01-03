@@ -1,6 +1,6 @@
-use bitcode::{Decode, Encode};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Encode, Decode, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, bincode::Encode, bincode::Decode, PartialEq, Eq)]
 pub enum InstProcessStatus {
     Starting,
     Running,

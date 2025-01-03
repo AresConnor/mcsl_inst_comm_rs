@@ -1,8 +1,19 @@
-use bitcode::{Decode, Encode};
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 #[allow(clippy::upper_case_acronyms)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Encode, Decode)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Default,
+    Serialize,
+    Deserialize,
+    bincode::Encode,
+    bincode::Decode,
+)]
 pub enum Encoding {
     ASCII,
     #[default]

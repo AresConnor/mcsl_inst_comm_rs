@@ -1,8 +1,9 @@
-use bitcode::{Decode, Encode};
+use bincode;
+use serde::{Deserialize, Serialize};
 
 use crate::payload::*;
 
-#[derive(Encode, Decode, Debug)]
+#[derive(Serialize, Deserialize, bincode::Encode, bincode::Decode, Debug)]
 pub struct PacketHeader {
     pub length: u16,
     pub magic: u16,
@@ -30,7 +31,7 @@ impl PacketHeader {
     }
 }
 
-type DecodeResult<T> = Result<T, String>;
+type DecodeResult<T> = Result<(T, usize), String>;
 pub trait DecodeFromBytes {
     type Target;
     fn from_bytes(bytes: &[u8]) -> DecodeResult<Self::Target>;
@@ -39,7 +40,7 @@ pub trait DecodeFromBytes {
 impl DecodeFromBytes for PacketHeader {
     type Target = Self;
     fn from_bytes(bytes: &[u8]) -> DecodeResult<Self::Target> {
-        let header = bitcode::decode::<PacketHeader>(bytes);
+        let header = bincode::decode_from_slice(bytes, bincode::config::legacy());
         header.map_err(|err| format!("{}", err))
     }
 }
@@ -54,7 +55,8 @@ impl PacketHeader {
             ));
         }
 
-        let unchecked_header = Self::from_bytes(bytes)?;
+        let decoded = Self::from_bytes(bytes)?;
+        let unchecked_header = &decoded.0;
         let unckecked_uuid = (unchecked_header.uuid1 as u128) << 96
             | (unchecked_header.uuid2 as u128) << 64
             | (unchecked_header.uuid3 as u128) << 32
@@ -62,7 +64,7 @@ impl PacketHeader {
         if unchecked_header.magic != MAGIC || unckecked_uuid != uuid {
             return Err("PacketHeader: invalid header".to_string());
         }
-        Ok(unchecked_header)
+        Ok(decoded)
     }
 }
 
@@ -71,7 +73,7 @@ pub const PACKET_HEADER_SIZE: usize = std::mem::size_of::<PacketHeader>();
 pub const SYNC_CHUNK_SIZE: usize = 4;
 const MAGIC: u16 = 0xA7B8;
 
-#[derive(Encode, Decode, Debug)]
+#[derive(Serialize, Deserialize, bincode::Encode, bincode::Decode, Debug)]
 pub enum Packet {
     SetUuid(SetUuidPayload),
     StartInst(StartInstPayload),
@@ -88,14 +90,15 @@ pub enum Packet {
 impl DecodeFromBytes for Packet {
     type Target = Self;
     fn from_bytes(bytes: &[u8]) -> DecodeResult<Self::Target> {
-        let header = bitcode::decode::<Self>(bytes);
+        let header = bincode::decode_from_slice(bytes, bincode::config::standard());
         header.map_err(|err| format!("{}", err))
     }
 }
 
 impl Packet {
-    pub fn to_message(&self, uuid: u128) -> Vec<u8> {
-        let packet_data = bitcode::encode(self);
+    pub fn to_bytes(&self, uuid: u128) -> Result<Vec<u8>, String> {
+        let packet_data =
+            bincode::encode_to_vec(self, bincode::config::standard()).map_err(|e| e.to_string())?;
         let count = if packet_data.len() % SYNC_CHUNK_SIZE == 0 {
             packet_data.len() / SYNC_CHUNK_SIZE
         } else {
@@ -103,13 +106,14 @@ impl Packet {
         };
 
         let header = PacketHeader::new(packet_data.len() as u16, uuid);
-        let header_data = bitcode::encode(&header);
+        let header_data =
+            bincode::encode_to_vec(header, bincode::config::legacy()).map_err(|e| e.to_string())?;
 
         let mut data =
             Vec::with_capacity(SYNC_CHUNK_SIZE + count * SYNC_CHUNK_SIZE + PACKET_HEADER_SIZE);
         data.extend_from_slice(&PACKET_BARRIER);
         data.extend_from_slice(&header_data);
         data.extend_from_slice(&packet_data);
-        data
+        Ok(data)
     }
 }

@@ -1,8 +1,8 @@
-use bitcode::{Decode, Encode};
+use serde::{Deserialize, Serialize};
 
 use crate::encodings::Encoding;
 
-#[derive(Debug, Encode, Decode, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, bincode::Encode, bincode::Decode)]
 pub enum InstType {
     Vanilla,
     Forge,
@@ -10,13 +10,13 @@ pub enum InstType {
     Spigot,
 }
 
-#[derive(Debug, Encode, Decode, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, bincode::Encode, bincode::Decode)]
 pub enum TargetType {
     Jar,
     Script,
 }
 
-#[derive(Encode, Decode, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, bincode::Encode, bincode::Decode, Debug, PartialEq, Eq)]
 pub struct LaunchConfig {
     pub input_encoding: Encoding,
     pub working_directory: String,
