@@ -4,9 +4,6 @@ use bincode;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, bincode::Encode, bincode::Decode, Debug)]
-pub struct SetUuidPayload {}
-
-#[derive(Serialize, Deserialize, bincode::Encode, bincode::Decode, Debug)]
 pub struct StartInstPayload {
     pub config: LaunchConfig,
 }

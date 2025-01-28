@@ -11,7 +11,6 @@ pub mod payload;
 pub type CommResult = Result<(), ()>;
 
 pub trait InstCommRpc {
-    fn set_uuid(&self, uuid: u128) -> impl Future<Output = CommResult>;
     fn start(&self, config: LaunchConfig) -> impl Future<Output = CommResult>;
     fn write_console(&self, text: Vec<u8>) -> impl Future<Output = CommResult>;
     fn kill(&self) -> impl Future<Output = CommResult>;
