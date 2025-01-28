@@ -34,19 +34,19 @@ impl PacketHeader {
 type DecodeResult<T> = Result<(T, usize), String>;
 pub trait DecodeFromBytes {
     type Target;
-    fn from_bytes(bytes: &[u8]) -> DecodeResult<Self::Target>;
+    fn from_unchecked_bytes(bytes: &[u8]) -> DecodeResult<Self::Target>;
 }
 
 impl DecodeFromBytes for PacketHeader {
     type Target = Self;
-    fn from_bytes(bytes: &[u8]) -> DecodeResult<Self::Target> {
+    fn from_unchecked_bytes(bytes: &[u8]) -> DecodeResult<Self::Target> {
         let header = bincode::decode_from_slice(bytes, bincode::config::legacy());
         header.map_err(|err| format!("{}", err))
     }
 }
 
 impl PacketHeader {
-    pub fn from_bytes_and_checked(bytes: &[u8], uuid: u128) -> DecodeResult<Self> {
+    pub fn from_bytes(bytes: &[u8], uuid: u128) -> DecodeResult<Self> {
         if bytes.len() < PACKET_HEADER_SIZE {
             return Err(format!(
                 "PacketHeader: bytes length {} is less than header size {}",
@@ -55,7 +55,7 @@ impl PacketHeader {
             ));
         }
 
-        let decoded = Self::from_bytes(bytes)?;
+        let decoded = Self::from_unchecked_bytes(bytes)?;
         let unchecked_header = &decoded.0;
         let unckecked_uuid = (unchecked_header.uuid1 as u128) << 96
             | (unchecked_header.uuid2 as u128) << 64
@@ -88,7 +88,7 @@ pub enum Packet {
 
 impl DecodeFromBytes for Packet {
     type Target = Self;
-    fn from_bytes(bytes: &[u8]) -> DecodeResult<Self::Target> {
+    fn from_unchecked_bytes(bytes: &[u8]) -> DecodeResult<Self::Target> {
         let header = bincode::decode_from_slice(bytes, bincode::config::standard());
         header.map_err(|err| format!("{}", err))
     }
