@@ -75,9 +75,9 @@ const MAGIC: u16 = 0xA7B8;
 
 #[derive(Serialize, Deserialize, bincode::Encode, bincode::Decode, Debug)]
 pub enum Packet {
-    StartInst(StartInstPayload),
+    Start(StartPayload),
     ConsoleInput(ConsoleInputPayload),
-    KillInst(KillInstPayload),
+    Kill(KillPayload),
 
     LogAppend(LogAppendPayload),
     StatusChange(StatusChangePayload),

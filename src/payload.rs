@@ -1,11 +1,14 @@
+use std::collections::HashMap;
+
 use crate::inst_status::InstProcessStatus;
-use crate::launch_config::LaunchConfig;
 use bincode;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, bincode::Encode, bincode::Decode, Debug)]
-pub struct StartInstPayload {
-    pub config: LaunchConfig,
+pub struct StartPayload {
+    pub program: String,
+    pub args: Vec<String>,
+    pub env: HashMap<String, String>,
 }
 #[derive(Serialize, Deserialize, bincode::Encode, bincode::Decode, Debug)]
 pub struct ConsoleInputPayload {
@@ -13,7 +16,7 @@ pub struct ConsoleInputPayload {
 }
 
 #[derive(Serialize, Deserialize, bincode::Encode, bincode::Decode, Debug)]
-pub struct KillInstPayload {}
+pub struct KillPayload {}
 
 #[derive(Serialize, Deserialize, bincode::Encode, bincode::Decode, Debug)]
 pub struct LogAppendPayload {
