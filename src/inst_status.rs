@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, bincode::Encode, bincode::Decode, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, bincode::Encode, bincode::Decode, PartialEq, Eq, Copy, Clone)]
 pub enum InstProcessStatus {
     Starting,
     Running,

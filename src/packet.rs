@@ -57,11 +57,11 @@ impl PacketHeader {
 
         let decoded = Self::from_unchecked_bytes(bytes)?;
         let unchecked_header = &decoded.0;
-        let unckecked_uuid = (unchecked_header.uuid1 as u128) << 96
+        let unchecked_uuid = (unchecked_header.uuid1 as u128) << 96
             | (unchecked_header.uuid2 as u128) << 64
             | (unchecked_header.uuid3 as u128) << 32
             | (unchecked_header.uuid4 as u128);
-        if unchecked_header.magic != MAGIC || unckecked_uuid != uuid {
+        if unchecked_header.magic != MAGIC || unchecked_uuid != uuid {
             return Err("PacketHeader: invalid header".to_string());
         }
         Ok(decoded)
